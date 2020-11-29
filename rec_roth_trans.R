@@ -15,9 +15,6 @@ rec_roth_trans <- function() {
                               keytrans, 
                               by = "keytrans")
   
-  # when i have NA values appearing from a mismatch, insert a chunk of code 
-  # this piece TBD
-  
   # save reconciliation output
   
   setwd("~/Documents/finances/2020-R01/COSTBASIS/4 reconciliation/1293/trans")
@@ -26,6 +23,5 @@ rec_roth_trans <- function() {
   # return working directory to code source github repo
   
   setwd("/Users/airvanilla/Github/quicken-positon/")
-  
-  
+
 }
