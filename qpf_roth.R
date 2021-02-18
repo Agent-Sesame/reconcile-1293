@@ -1,8 +1,12 @@
 qpf_roth <- function() {
 
-  # import and clean quicken roth ira position and cost lot data.
+  # set working directory for data import
   
-  setwd("~/Documents/finances/2020-R01/COSTBASIS/1 quicken/inv/pf/R-1293")
+  source('~/Github/reconcile-condo/year_path.R')
+  setwd(paste(year_path(), "1 quicken/inv/pf/R-1293", sep = ""))
+  
+  # import and clean quicken investment position and cost lot data.
+  
   df_qpf <- read.csv(list.files(pattern = "\\.csv"),
                      header = FALSE,
                      sep = ",",
@@ -42,38 +46,45 @@ qpf_roth <- function() {
   df_qpf <- as.data.frame(apply(df_qpf, 2, function(x) gsub("\\,", "", x)), 
                           stringsAsFactors = FALSE)
 
+  # create vector of 0.0000 formatted shares, roth ira only needed 0.000 format
+  # but because of google position, the inv account requires 4 decimal places 
+  
+  vector_td <- as.numeric(df_qpf$qpf.share)
+  vector_td <- format(vector_td, nsmall = 4)
+  vector_td <- trimws(vector_td)
+  
   # create quicken reconciliation object with unique key
   
   df_qpf <- cbind.data.frame(df_qpf,
                               keylots = paste(df_qpf$qpf.date2,
                                               df_qpf$qpf.sym,
-                                              df_qpf$qpf.share,
+                                              vector_td,
                                               df_qpf$qpf.cost),
                               keypos = paste(df_qpf$qpf.sym,
-                                             df_qpf$qpf.share,
+                                             vector_td,
                                              df_qpf$qpf.cost),
                               stringsAsFactors = FALSE)
 
-  # remove junk lines at end
+  # remove junk lines at end - this next line caused an error temp commented out
   
-  df_qpf <- df_qpf[1:(dim(df_qpf)[1]-2), ]
+  df_qpf <- df_qpf[1:(dim(df_qpf)[1]-1), ]
 
-  ##### create cost lot and position dfs based on df_qpf
+  # create cost lot and position dfs based on df_qpf
   
-  df_qpf_r_lots <- df_qpf[is.na(df_qpf$qpf.quote), ]
-  df_qpf_r_posi <- df_qpf[!is.na(df_qpf$qpf.quote), ]
+  df_qpf_i_pos <- df_qpf[is.na(df_qpf$qpf.date2), ]
+  df_qpf_i_lots <- df_qpf[!is.na(df_qpf$qpf.date2), ]
 
-  # remove first data frame and clean date vector
+  # remove df_qpf data frame and qpf.date2 clean date vector
   
   remove(df_qpf)
   remove(qpf.date2)
   
-  # drop unneeded columns from quicken roth position data frame
+  # drop unneeded columns from quicken investment position data frame
   
-  df_qpf_r_posi <<- df_qpf_r_posi[, c(2, 4, 5, 8)]
+  df_qpf_i_pos <<- df_qpf_i_pos[, c(2, 4, 5, 8)]
   
-  # drop uneeded columns from the quicken roth cost lot data frame
+  # drop uneeded columns from the quicken investment cost lot data frame
   
-  df_qpf_r_lots <<- df_qpf_r_lots[, c(6, 2, 4, 5, 7)]
+  df_qpf_i_lots <<- df_qpf_i_lots[ , c(2, 4, 5, 6, 7)]
 
 }

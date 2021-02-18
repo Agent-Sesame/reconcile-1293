@@ -4,7 +4,7 @@ rec_roth_trans <- function() {
   
   library(dplyr) #required for full_join function
   
-  # call roth transaction import functions
+  # call investment transaction import functions
   
   cb_roth_trans()
   qtn_roth()
@@ -15,13 +15,17 @@ rec_roth_trans <- function() {
                               keytrans, 
                               by = "keytrans")
   
+  # set working directory for data import
+  
+  source('~/Github/reconcile-condo/year_path.R')
+  setwd(paste(year_path(), "4 reconciliation/1293/trans", sep = ""))
+
   # save reconciliation output
   
-  setwd("~/Documents/finances/2020-R01/COSTBASIS/4 reconciliation/1293/trans")
   write.csv(compare_trans, "Reconciliation_Roth_Transactions.csv")
   
   # return working directory to code source github repo
   
-  setwd("/Users/airvanilla/Github/quicken-positon/")
+  setwd("~/Github/reconcile-1293 roth")
 
 }

@@ -4,27 +4,42 @@ rec_roth_pos <- function() {
   
   library(dplyr)
   
-  # call roth position import functions
+  # call investment position import functions
   
   bkr_roth_pos()
   qpf_roth()
 
   # join quicken position and broker position data
   
-  compare_positions <<- full_join(df_qpf_r_posi, 
-                                  df_bkr_r_pos, 
+  compare_positions <<- full_join(df_qpf_i_pos, 
+                                  df_bkr_i_pos, 
                                   by = "keypos")
   
-  # when i have NA values appearing from a mismatch, insert a chunk of code 
-  # this piece TBD
+  # create a logical test for na in compare_position
   
+  vector_na <- compare_positions$qpf.sym == compare_positions$bkr.sym
+  
+  # create data frame with vector_na
+  
+  df_na <- data.frame(vector_na)
+  
+  # add column to compare_lots with the logical test of df_na
+  
+  compare_positions <- cbind.data.frame(compare_positions, 
+                                   df_na, 
+                                   stringsAsFactors = FALSE)  
+  
+  # set working directory for data import
+  
+  source('~/Github/reconcile-condo/year_path.R')
+  setwd(paste(year_path(), "4 reconciliation/1293/pos", sep = ""))
+
   # save reconciliation output
   
-  setwd("~/Documents/finances/2020-R01/COSTBASIS/4 reconciliation/1293/pos")
   write.csv(compare_positions, "Reconciliation_Roth_Positions.csv")
   
   # return working directory to code source github repo
   
-  setwd("/Users/airvanilla/Github/quicken-positon/")
+  setwd("~/Github/reconcile-1293 roth/")
   
 }

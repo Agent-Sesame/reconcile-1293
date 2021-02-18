@@ -4,26 +4,42 @@ rec_roth_lots <- function() {
   
   library(dplyr)
   
-  # call roth lots import functions
+  # call investment lots import functions
   
   bkr_roth_lots()
   qpf_roth()
   
   # join quicken lot and broker lot data. 
   
-  compare_lots <<- full_join(df_bkr_lots,
-                             df_qpf_r_lots,
+  compare_lots <- full_join(df_bkr_lots,
+                             df_qpf_i_lots,
                              by = "keylots")
   
-  # when i have NA values appearing from a mismatch, insert a chunk of code 
+  # create a logical test for na in compare_lots
+  
+  vector_na <- compare_lots$bkr.date == compare_lots$qpf.date2
+  
+  # create data frame with vector_na
+  
+  df_na <- data.frame(vector_na)
+  
+  # add column to compare_lots with the logical test of df_na
+  
+  compare_lots <<- cbind.data.frame(compare_lots, 
+                                    df_na, 
+                                    stringsAsFactors = FALSE)
+  
+  # set working directory for data import
+  
+  source('~/Github/reconcile-condo/year_path.R')
+  setwd(paste(year_path(), "4 reconciliation/1293/lots", sep = ""))
   
   # save reconciliation output
   
-  setwd("~/Documents/finances/2020-R01/COSTBASIS/4 reconciliation/1293/lots")
   write.csv(compare_lots, "Reconciliation_Roth_Lots.csv")
   
   # return working directory to code source github repo
   
-  setwd("/Users/airvanilla/Github/quicken-positon/")
+  setwd("~/Github/reconcile-1293 roth")
   
 }

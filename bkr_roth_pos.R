@@ -1,11 +1,15 @@
 bkr_roth_pos <- function() {
 
-  # import and clean schwab roth ira position data. lot data not in this file
+  # set working directory for data import
   
-  setwd("~/Documents/finances/2020-R01/COSTBASIS/2 schwab/pos/1293")
+  source('~/Github/reconcile-condo/year_path.R')
+  setwd(paste(year_path(), "2 schwab/pos/1293", sep = ""))
+  
+  # import and clean schwab investment position data. lot data not in this file
+  
   df_bkr <- read.csv(list.files(pattern = "\\.CSV"),
                      header = FALSE,
-                     skip = 3, 
+                     skip = 3,
                      stringsAsFactors = FALSE)
   
   # drop unneeded columns
@@ -16,7 +20,7 @@ bkr_roth_pos <- function() {
   
   colnames(df_bkr) <- c("bkr.sym", "bkr.share", "bkr.cost")
   
-  # remove white spaces, dollar signs signs, then commas
+  # remove white spaces, dollar signs signs, commas, then front slash
   
   df_bkr <- as.data.frame(apply(df_bkr, 2, function(x) gsub("\\s+", "", x)), 
                           stringsAsFactors = FALSE)
@@ -24,11 +28,13 @@ bkr_roth_pos <- function() {
                           stringsAsFactors = FALSE)
   df_bkr <- as.data.frame(apply(df_bkr, 2, function(x) gsub("\\,", "", x)), 
                           stringsAsFactors = FALSE)
+  df_bkr <- as.data.frame(apply(df_bkr, 2, function(x) gsub("\\/", "", x)), 
+                          stringsAsFactors = FALSE)
   
-  # create vector of 0.000 formatted shares
+  # create vector of 0.00000 formatted shares
   
   vector_td <- as.numeric(df_bkr$bkr.share)
-  vector_td <- format(vector_td, nsmall = 3)
+  vector_td <- format(vector_td, nsmall = 4)
   vector_td <- trimws(vector_td)
   
   # create quicken reconciliation object with unique key
@@ -43,6 +49,6 @@ bkr_roth_pos <- function() {
   
   # remove junk lines at end
   
-  df_bkr_r_pos <<- df_bkr[1:(dim(df_bkr)[1]-2), ]
+  df_bkr_i_pos <<- df_bkr[1:(dim(df_bkr)[1]-2), ]
 
 }

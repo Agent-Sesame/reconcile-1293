@@ -5,20 +5,19 @@ bkr_roth_lots <- function() {
   library(dplyr)  # required for the mutate and group functions
   library(taRifx) # required by remove.factors function
   
-  # import and clean schwab roth ira lot data, position data not in this file
+  # set working directory for data import
   
-  setwd("~/Documents/finances/2020-R01/COSTBASIS/2 schwab/lots/1293")
-  df_bkr <- read.fwf(list.files(pattern = "\\.txt"), 
-                      widths = c(8, 29, 45),
-                      skip = 1)
+  source('~/Github/reconcile-condo/year_path.R')
+  setwd(paste(year_path(), "2 schwab/lots/1293", sep = ""))
+  
+  # import and clean schwab inv lot data, position data not in this file. note
+  # column widths may be variable and need subsequent tweaks.... greeeeat.
+  
+  df_bkr <- read.csv(list.files(pattern = "\\.csv"))
   
   # drop unneeded columns
   
-  df_bkr <- df_bkr[c(1, 3, 4, 7)]
-  
-  # remove data frame factors since read.fwf does not support stringsAsFactors
-  
-  df_bkr <- remove.factors(df_bkr)
+  df_bkr <- df_bkr[c(1:3, 5)]
   
   # rename columns
   
@@ -54,6 +53,12 @@ bkr_roth_lots <- function() {
                 %>% ungroup()
                 %>% select(-grp))
 
+  # remove slashes from df_fix to change brk/b to brkb, quicken can not match
+  # schwab's symbol format
+  
+  df_fix <- as.data.frame(apply(df_fix, 2, function(x) gsub("/", "", x)), 
+                          stringsAsFactors = FALSE)
+
   # cbind the fixed symbol column with original data frame
   
   df_bkr <- cbind.data.frame(df_fix, df_bkr)
@@ -82,18 +87,19 @@ bkr_roth_lots <- function() {
 
   df_bkr_date <- as.Date(df_bkr$bkr.date, "%m/%d/%Y")
   
-  # create vector of 0.000 formatted shares
+  # create vector of 0.00000 formatted shares, roth ira only needed 0.000 format
+  # but because of google position, the inv account requires 4 decimal places 
   
   vector_td <- as.numeric(df_bkr$bkr.lots)
-  vector_td <- format(vector_td, nsmall = 3)
+  vector_td <- format(vector_td, nsmall = 4)
   vector_td <- trimws(vector_td)
-  
+
   # create new data frame with reconciliation key
   
   df_bkr_lots <<- cbind.data.frame(bkr.date = df_bkr_date,
-                                   df_bkr$bkr.sym2,
-                                   vector_td,
-                                   df_bkr$bkr.cost,
+                                   bkr.sym = df_bkr$bkr.sym2,
+                                   bkr.share = vector_td,
+                                   bkr.cost = df_bkr$bkr.cost,
                                    keylots = paste(df_bkr_date,
                                              df_bkr$bkr.sym2,
                                              vector_td,
